@@ -1,0 +1,14 @@
+title: Meu Site de Notificações de Leis
+email: seuemail@example.com
+description: >- # this means to ignore newlines until "baseurl:"
+  Este é um site para notificação de novas leis relacionadas a privacidade, proteção de dados, digital e virtual.
+baseurl: "" # the subpath of your site, e.g. /blog
+url: "" # the base hostname & protocol for your site, e.g. http://example.com
+twitter_username: seuusername
+github_username:  seugithub
+
+# Build settings
+markdown: kramdown
+theme: minima
+plugins:
+  - jekyll-feed
