@@ -20,9 +20,9 @@ def fetch_new_laws():
         return []
 
 def send_email(laws):
-    sender = "your-email@example.com"
-    receiver = "your-email@example.com"
-    password = "your-password"  # It's recommended to use environment variables for this
+   sender = os.getenv('EMAIL_USER')
+    receiver = os.getenv('EMAIL_USER')  # ou outro e-mail de destino, se desejar
+    password = os.getenv('EMAIL_PASS')
     subject = "Novas Leis de Privacidade e Proteção de Dados"
 
     # Setup the MIME
