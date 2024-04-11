@@ -13,10 +13,46 @@ def fetch_new_laws():
     response = requests.get(url, params=query_params)
     laws = response.json()['dados']
 
+    name: Fetch New Laws
+
+on:
+  schedule:
+    - cron: '0 12 * * *'  # Runs at 12:00 UTC every day
+
+jobs:
+  fetch-and-update-laws:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+
+      - name: Run fetch_laws script
+        run: python fetch_laws.py
+
+      - name: Commit and push if changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git commit -m "Update laws list" -a || echo "No changes to commit"
+          git push
+
+
     new_laws_content = ""
     for law in laws:
         new_laws_content += f"### {law['siglaTipo']} {law['numero']}/{law['ano']}\n"
         new_laws_content += f"**Ementa**: {law['ementa']}\n\n"
+        
 
     # Replace 'laws.md' with your filename
     with open('laws.md', 'w') as file:
