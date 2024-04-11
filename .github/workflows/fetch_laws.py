@@ -1,62 +1,51 @@
 import requests
-import os
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 def fetch_new_laws():
     url = "https://dadosabertos.camara.leg.br/api/v2/proposicoes"
-    query_params = {
+    params = {
         'siglaTipo': 'PL',
         'ordenarPor': 'dataApresentacao',
         'ordem': 'DESC',
-        'itens': 10,  # Limit to 10 items for demonstration
+        'itens': 10,
         'palavrasChave': 'privacidade, proteção de dados'
     }
-    response = requests.get(url, params=query_params)
-    laws = response.json()['dados']
+    response = requests.get(url, params=params)
+    if response.status_code == 200:
+        laws = response.json()['dados']
+        return laws
+    else:
+        return []
 
-    name: Fetch New Laws
+def send_email(laws):
+    sender = "your-email@example.com"
+    receiver = "your-email@example.com"
+    password = "your-password"  # It's recommended to use environment variables for this
+    subject = "Novas Leis de Privacidade e Proteção de Dados"
 
-on:
-  schedule:
-    - cron: '0 12 * * *'  # Runs at 12:00 UTC every day
+    # Setup the MIME
+    message = MIMEMultipart()
+    message['From'] = sender
+    message['To'] = receiver
+    message['Subject'] = subject
 
-jobs:
-  fetch-and-update-laws:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install requests
-
-      - name: Run fetch_laws script
-        run: python fetch_laws.py
-
-      - name: Commit and push if changes
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add .
-          git commit -m "Update laws list" -a || echo "No changes to commit"
-          git push
-
-
-    new_laws_content = ""
+    # Email body
+    body = "Confira as últimas leis propostas:\n\n"
     for law in laws:
-        new_laws_content += f"### {law['siglaTipo']} {law['numero']}/{law['ano']}\n"
-        new_laws_content += f"**Ementa**: {law['ementa']}\n\n"
-        
+        body += f"{law['siglaTipo']} {law['numero']}/{law['ano']} - {law['ementa']}\n"
+    message.attach(MIMEText(body, 'plain'))
 
-    # Replace 'laws.md' with your filename
-    with open('laws.md', 'w') as file:
-        file.write(new_laws_content)
+    # SMTP session
+    session = smtplib.SMTP('smtp.gmail.com', 587)  # Use smtp.gmail.com for Gmail
+    session.starttls()  # Enable security
+    session.login(sender, password)
+    text = message.as_string()
+    session.sendmail(sender, receiver, text)
+    session.quit()
 
 if __name__ == "__main__":
-    fetch_new_laws()
+    laws = fetch_new_laws()
+    if laws:
+        send_email(laws)
