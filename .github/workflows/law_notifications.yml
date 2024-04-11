@@ -1,0 +1,31 @@
+name: Law Notifications
+
+on:
+  schedule:
+    - cron: '0 12 * * *'  # Execute once a day at 12:00 UTC
+
+jobs:
+  check_and_notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+
+      - name: Execute the script
+        run: python fetch_laws.py
+
+      - name: Send notification if new laws are found
+        env:
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+        run: python fetch_laws.py
